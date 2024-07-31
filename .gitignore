@@ -1,0 +1,5 @@
+bin/
+
+.env.development
+
+serviceAccount.json
