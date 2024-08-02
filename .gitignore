@@ -3,3 +3,5 @@ bin/
 .env.development
 
 serviceAccount.json
+
+mongoCredential.txt

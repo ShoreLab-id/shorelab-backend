@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/joho/godotenv"
 
@@ -20,10 +19,11 @@ func main() {
 		Addr:    "0.0.0.0:8080",
 		Handler: mux,
 	}
-	log.Default().Println(os.Executable())
+
 	mux.HandleFunc("/api/images", h1.Image)
 	mux.HandleFunc("/api/status", h1.Status)
 	mux.HandleFunc("/api/static/img", h2.ImageHandler)
+	mux.HandleFunc("/api/auth", h1.Auth)
 
 	log.Default().Printf("Server started on http://0.0.0.0:8080")
 	if err := s.ListenAndServe(); err != nil {
