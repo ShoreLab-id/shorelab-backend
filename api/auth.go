@@ -5,8 +5,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ShoreLab/shorelab-backend/lib/dto"
 	"github.com/ShoreLab/shorelab-backend/lib/gateway"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Auth(w http.ResponseWriter, r *http.Request) {
@@ -16,8 +18,10 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(http.StatusText(http.StatusMethodNotAllowed)))
 		return
 	}
-	uname, pw := r.FormValue("username"), r.FormValue("password")
-	log.Default().Println(uname, pw)
+	auth := &dto.AuthRequest{
+		Email:    r.FormValue("email"),
+		Password: r.FormValue("password"),
+	}
 
 	g, err := gateway.NewGateway()
 	if err != nil {
@@ -26,11 +30,17 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := g.Service.GetUser()
+	res, err := g.Service.LoginService(auth)
 	if err == mongo.ErrNoDocuments {
 		log.Default().Println(r.RemoteAddr, r.RequestURI, http.StatusNotFound, http.StatusText(http.StatusNotFound))
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("User Not Found"))
+		return
+	}
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		log.Default().Println(r.RemoteAddr, r.RequestURI, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Wrong Email or Password"))
 		return
 	}
 	if err != nil {
@@ -39,5 +49,6 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(res)
 }

@@ -5,3 +5,8 @@ type UserCreateRequest struct {
 	Email    string
 	Password string
 }
+
+type AuthRequest struct {
+	Email    string
+	Password string
+}
