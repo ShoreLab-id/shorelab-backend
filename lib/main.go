@@ -24,6 +24,7 @@ func main() {
 	mux.HandleFunc("/api/status", h1.Status)
 	mux.HandleFunc("/api/static/img", h2.ImageHandler)
 	mux.HandleFunc("/api/auth", h1.Auth)
+	mux.HandleFunc("/api/users", h1.Users)
 
 	log.Default().Printf("Server started on http://0.0.0.0:8080")
 	if err := s.ListenAndServe(); err != nil {

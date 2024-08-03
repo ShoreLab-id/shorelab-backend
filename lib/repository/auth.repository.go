@@ -10,12 +10,12 @@ import (
 
 func (r *Repository) GetUser() (*model.User, error) {
 	var u model.User
-	dbContext, cancel := context.WithTimeout(r.ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(r.ctx, 5*time.Second)
 	defer cancel()
 
 	col := r.db.MongoDBDatabase.Collection("users")
 
-	err := col.FindOne(dbContext, bson.M{"username": "amh"}).Decode(&u)
+	err := col.FindOne(ctx, bson.M{"username": "amh"}).Decode(&u)
 	if err != nil {
 		return nil, err
 	}
