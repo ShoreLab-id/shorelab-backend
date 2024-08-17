@@ -2,10 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
-
-	"cloud.google.com/go/storage"
-	"github.com/ShoreLab/shorelab-backend/lib/gateway"
 )
 
 type ErrorMsg []string
@@ -21,17 +20,10 @@ func ImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g, err := gateway.NewGateway()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Server Error"))
-		return
-	}
-
-	c, ct, err := g.Service.GetImage(q)
-	if err == storage.ErrObjectNotExist {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Not found"))
+	img, err := http.Get(fmt.Sprintf("https://drive.usercontent.google.com/download?id=%s&export=download&authuser=0", q))
+	if img.StatusCode != http.StatusOK {
+		w.WriteHeader(img.StatusCode)
+		w.Write([]byte(http.StatusText(img.StatusCode)))
 		return
 	}
 	if err != nil {
@@ -39,7 +31,21 @@ func ImageHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Internal Server Error"))
 		return
 	}
+	c, err := io.ReadAll(img.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal Server Error"))
+		return
+	}
+	defer func() {
+		err := img.Body.Close()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal Server Error"))
+			return
+		}
+	}()
 
-	w.Header().Add("Content-Type", ct)
+	w.Header().Add("Content-Type", img.Header.Get("Content-Type"))
 	w.Write([]byte(c))
 }
