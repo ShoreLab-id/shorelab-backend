@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -15,6 +16,7 @@ func ImageHandler(w http.ResponseWriter, r *http.Request) {
 		e := map[string]ErrorMsg{
 			"errors": {"Missing required query param 'fileName'."},
 		}
+		log.Default().Println(r.RemoteAddr, r.RequestURI, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(e)
 		return
@@ -46,6 +48,7 @@ func ImageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	log.Default().Println(r.RemoteAddr, r.RequestURI, http.StatusOK, http.StatusText(http.StatusOK))
 	w.Header().Add("Content-Type", img.Header.Get("Content-Type"))
 	w.Write([]byte(c))
 }
